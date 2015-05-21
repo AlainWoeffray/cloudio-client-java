@@ -1,0 +1,13 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://repo.eclipse.org/content/repositories/paho-releases/"
+    }
+}
+
+dependencies {
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.5.0'
+    compile 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.0.2'
+}
