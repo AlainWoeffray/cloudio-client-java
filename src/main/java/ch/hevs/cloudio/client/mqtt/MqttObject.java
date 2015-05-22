@@ -21,7 +21,7 @@ class MqttObject implements ch.hevs.cloudio.client.Object, MqttObjectContainer, 
     private String conforms = null;
 
     private MqttNamedItemSet<MqttObject> objects = new MqttNamedItemSet<MqttObject>();
-    private MqttNamedItemSet<Attribute> attributes = new MqttNamedItemSet<Attribute>();
+    private MqttNamedItemSet<MqttAbstractAttribute> attributes = new MqttNamedItemSet<MqttAbstractAttribute>();
 
     private boolean outOfSync = true;
 
@@ -123,14 +123,20 @@ class MqttObject implements ch.hevs.cloudio.client.Object, MqttObjectContainer, 
     }
 
     @Override
-    public Attribute<?> attribute(String attributeName, Class attributeType) {
+    public Attribute attribute(String attributeName, Class attributeType) {
         // Try to get the child attribute with the given name.
-       Attribute<?> attribute = attributes.getItem(attributeName);
+       MqttAbstractAttribute attribute = attributes.getItem(attributeName);
         if (attribute == null) {
             try {
                 // If it does not exist, create a new attribute with the given name and add it to the set.
                 if (attributeType == Integer.class) {
                     attribute = new MqttIntegerAttribute(attributeName);
+                } else if (attributeType == Boolean.class) {
+                    attribute = new MqttBooleanAttribute(attributeName);
+                } else if (attributeType == Float.class || attributeType == Double.class) { // todo: Add double data type.
+                    attribute = new MqttFloatAttribute(attributeName);
+                } else if (attributeType == String.class) {
+                    attribute = new MqttStringAttribute(attributeName);
                 } else {
                     throw new IllegalArgumentException();
                 }
@@ -157,7 +163,7 @@ class MqttObject implements ch.hevs.cloudio.client.Object, MqttObjectContainer, 
             throws IllegalArgumentException {
         try {
             // Add the static attribute. The exceptions should be NEVER thrown and if so, silently ignore them.
-            attribute(attributeName, value.getClass()).constraint(AttributeConstraint.STATIC).initialize(value, 0);
+                attribute(attributeName, value.getClass()).constraint(AttributeConstraint.STATIC).initialize(value, 0);
         } catch (IllegalStateException e) {
         } catch (IllegalAccessError e) {}
         return this;
@@ -167,7 +173,7 @@ class MqttObject implements ch.hevs.cloudio.client.Object, MqttObjectContainer, 
     /*** MqttObjectContainer implementation ***************************************************************************/
 
     @Override
-    public void attributeChanged(Attribute<?> attribute) {
+    public void attributeChanged(Attribute attribute) {
         // Relay the event to the parent.
         parent.attributeChanged(attribute);
     }
@@ -189,7 +195,7 @@ class MqttObject implements ch.hevs.cloudio.client.Object, MqttObjectContainer, 
         int changes = 0;
 
         // Count the number of attributes with changes.
-        for (MqttIntegerAttribute attribute: attributes) {
+        for (MqttAbstractAttribute attribute: attributes) {
             if (attribute.hasChanges()) {
                 ++changes;
             }
@@ -216,7 +222,7 @@ class MqttObject implements ch.hevs.cloudio.client.Object, MqttObjectContainer, 
         }
 
         // All attributes are in sync now too.
-        for (MqttIntegerAttribute attribute: attributes) {
+        for (MqttAbstractAttribute attribute: attributes) {
             attribute.setSynchronized();
         }
     }
@@ -234,7 +240,7 @@ class MqttObject implements ch.hevs.cloudio.client.Object, MqttObjectContainer, 
             }
 
             // Call the commit method on all attributes.
-            for (MqttIntegerAttribute attribute: attributes) {
+            for (MqttAbstractAttribute attribute: attributes) {
                 attribute.commit(publisher);
             }
         }
@@ -261,7 +267,7 @@ class MqttObject implements ch.hevs.cloudio.client.Object, MqttObjectContainer, 
                 }
             } else if ("attributes".equals(childType)) {
                 // If the child type is "attributes" search for the attribute with the given name.
-                MqttIntegerAttribute attribute = attributes.getItem(path.pop());
+                MqttAbstractAttribute attribute = attributes.getItem(path.pop());
 
                 // If the attribute exists continue, otherwise return null.
                 if (attribute != null) {

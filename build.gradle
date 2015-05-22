@@ -1,4 +1,8 @@
 apply plugin: 'java'
+apply plugin: 'maven'
+
+group = "cloudio"
+version = "0.1-SNAPSHOT"
 
 repositories {
     mavenCentral()

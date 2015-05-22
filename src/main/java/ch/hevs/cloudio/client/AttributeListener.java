@@ -3,7 +3,7 @@ package ch.hevs.cloudio.client;
 /**
  * All objects implementing this interface can be added as a listener in an Attribute in order to get notified when
  * the object has been changed from the cloud. It is important to understand that the listener does not get notified
- * if the attribute is changed locally, only changes from remote (the IoT cloud) will be published to all registered
+ * if the attribute is changed locally, only changes from remote (cloud.iiO) will be published to all registered
  * listeners of an attribute in the local application.
  */
 public interface AttributeListener {
@@ -16,5 +16,5 @@ public interface AttributeListener {
      * @param attribute The attribute that has been changed.
      * @see AttributeValidator
      */
-    void attributeChanged(Attribute<?> attribute);
+    void attributeChanged(Attribute attribute);
 }

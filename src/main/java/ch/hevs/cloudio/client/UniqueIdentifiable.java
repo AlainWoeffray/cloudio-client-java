@@ -1,8 +1,10 @@
 package ch.hevs.cloudio.client;
 
 /**
- * Represents an object which can be uniquely identified by an UUID object. The kind of the UUID depends the actual
- * implementation of the actual implementation of the UniqueIdentifiable interface.
+ * Represents an object which can be uniquely identified by an UUID. The actual implementation of the UUID object
+ * returned by the get getUuid() is abstract as Uuid is just an interface.
+ *
+ * @see Uuid
  */
 public interface UniqueIdentifiable extends NamedItem {
     /**

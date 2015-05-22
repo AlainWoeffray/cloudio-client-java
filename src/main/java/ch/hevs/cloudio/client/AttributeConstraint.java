@@ -16,8 +16,8 @@ public enum AttributeConstraint {
 
     /**
      * The attribute is a parameter that can be configured from the cloud and which's value should be saved locally on
-     * the "Thing". Note that the IoT communication library will not save the value, it is the responsibility of you
-     * to actually save the configuration.
+     * the "Endpoint". Note that the cloud.iO communication library will not save the value, it is the responsibility
+     * of you to actually save the configuration to a persistent location.
      */
     PARAMETER,
 
@@ -28,7 +28,7 @@ public enum AttributeConstraint {
 
     /**
      * The attribute is a set point that can be changed from the cloud. Note that there is no guarantee that the value
-     * of set points are stored within the "Thing" and might be initialized to the default value on the next power
+     * of set points are stored within the "Endpoint" and might be initialized to the default value on the next power
      * cycle.
      */
     SET_POINT,

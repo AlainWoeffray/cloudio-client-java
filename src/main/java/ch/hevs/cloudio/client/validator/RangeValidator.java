@@ -23,7 +23,7 @@ public class RangeValidator<T extends Comparable> implements AttributeValidator<
     }
 
     @Override
-    public boolean validate(Attribute<T> attribute, T newValue) {
+    public boolean validate(Attribute attribute, T newValue) {
         try {
             return min.compareTo(newValue) <= 0 && max.compareTo(newValue) >= 0;
         } catch (ClassCastException e) {}

@@ -9,13 +9,11 @@ import java.util.Properties;
  */
 public class Factory {
     /**
-     * A ThingFactory has to implement this method in order to return a valid Thing. Note that the factory class has to
-     * be named <b>ThingFactory</b> in a package like this: <b>ch.heivs.iot.thing.{PROTOCOL}</b>. Otherwise the static
-     * instantiation method will not find the factory!
+     * The Factory can be used to instantiate valid Endpoints.
      *
-     * @param uuid          The UUID of the Thing to create.
-     * @param properties    Properties for the Thing to be created.
-     * @return               A new Thing initialized using the given properties.
+     * @param uuid          The UUID of the Endpoint to create.
+     * @param properties    Properties for the Endpoint to be created.
+     * @return               A new Endpoint initialized using the given properties.
      * @throws Exception    An exception is thrown in the case of an error. As there might be any exceptions thrown by
      *                      actual factories implementing this interface, the definition is broad.
      */

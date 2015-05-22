@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
-class MqttEndpoint implements ch.hevs.cloudio.client.Endpoint, MqttContainer, MqttPublisher, MqttCallback, JsonSerializable {
+class MqttEndpoint implements Endpoint, MqttContainer, MqttPublisher, MqttCallback, JsonSerializable {
     private String uuid;
     private MqttNamedItemSet<MqttNode> nodes = new MqttNamedItemSet<MqttNode>();
     private MqttClient mqtt = null;
@@ -74,7 +74,7 @@ class MqttEndpoint implements ch.hevs.cloudio.client.Endpoint, MqttContainer, Mq
     }
 
 
-    /*** Thing Implementation *****************************************************************************************/
+    /*** Endpoint Implementation **************************************************************************************/
 
     @Override
     public String getName() {
@@ -103,13 +103,13 @@ class MqttEndpoint implements ch.hevs.cloudio.client.Endpoint, MqttContainer, Mq
     }
 
     @Override
-    public void setPublishMode(PublishMode thingPublishMode) throws Exception {
-        if (thingPublishMode == PublishMode.OFFLINE) {
+    public void setPublishMode(PublishMode publishMode) throws Exception {
+        if (publishMode == PublishMode.OFFLINE) {
             disconnect();
         } else {
             connect();
         }
-        publishMode = thingPublishMode;
+        this.publishMode = publishMode;
     }
 
     @Override
@@ -123,7 +123,7 @@ class MqttEndpoint implements ch.hevs.cloudio.client.Endpoint, MqttContainer, Mq
     /*** MqttContainer Implementation *********************************************************************************/
 
     @Override
-    public void attributeChanged(Attribute<?> attribute) {
+    public void attributeChanged(Attribute attribute) {
         if (publishMode == PublishMode.IMMEDIATE) {
             update(attribute);
             if (attribute instanceof MqttIntegerAttribute) {
@@ -238,14 +238,14 @@ class MqttEndpoint implements ch.hevs.cloudio.client.Endpoint, MqttContainer, Mq
                 // Only operations on single attributes are allowed in the current version!
                 if (attribute instanceof MqttIntegerAttribute) {
                     ObjectMapper mapper = new ObjectMapper();
-                    final java.lang.Object value = mapper.readValue(message.getPayload(), java.lang.Object.class);
+                    final Integer value = mapper.readValue(message.getPayload(), Integer.class);
 
                     // Workaround for bug (probably in RabbitMQ) where we can not publish a new message before acking
                     // the reception of this message. TODO: Check if the bug is in PAHO or RabbitMQ MQTT plugin.
                     (new Timer()).schedule(new TimerTask() {
                         @Override
                         public void run() {
-                            ((MqttIntegerAttribute) attribute).setValueFromMqtt(value);
+                            ((MqttIntegerAttribute)attribute).setValueFromMqtt(value);
                         }
                     }, 0);
                 }}

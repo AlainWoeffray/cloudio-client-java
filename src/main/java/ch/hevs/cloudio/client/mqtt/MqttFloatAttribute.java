@@ -1,6 +1,8 @@
 package ch.hevs.cloudio.client.mqtt;
 
-import ch.hevs.cloudio.client.*;
+import ch.hevs.cloudio.client.Attribute;
+import ch.hevs.cloudio.client.AttributeConstraint;
+import ch.hevs.cloudio.client.AttributeListener;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializable;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -8,19 +10,19 @@ import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 
 import java.io.IOException;
 
-class MqttIntegerAttribute extends MqttAbstractAttribute<Integer> implements JsonSerializable {
-    private Integer value;
+class MqttFloatAttribute extends MqttAbstractAttribute<Float> implements JsonSerializable {
+    private Float value;
 
-    public MqttIntegerAttribute(String name) {
+    public MqttFloatAttribute(String name) {
         super(name);
     }
 
     @Override
     public Class getType() {
-        return Integer.class;
+        return Boolean.class;
     }
 
-    void setValueFromMqtt(Integer value) {
+    void setValueFromMqtt(Float value) {
         // Only PARAMETER and SET_POINT can be changed from remote.
         if (getConstraint() == AttributeConstraint.PARAMETER || getConstraint() == AttributeConstraint.SET_POINT) {
             // Let the validator check the value before actually applying it.
@@ -50,18 +52,18 @@ class MqttIntegerAttribute extends MqttAbstractAttribute<Integer> implements Jso
 
 
     @Override
-    public Integer getValue() {
+    public Float getValue() {
         return value;
     }
 
     @Override
-    public void setValue(Integer value) throws IllegalArgumentException, IllegalAccessError {
+    public void setValue(Float value) throws IllegalArgumentException, IllegalAccessError {
         // Call method with current timestamp in milliseconds.
         setValue(value, (float)System.currentTimeMillis() / 1000f);
     }
 
     @Override
-    public void setValue(Integer value, float timestamp) throws IllegalArgumentException, IllegalAccessError {
+    public void setValue(Float value, float timestamp) throws IllegalArgumentException, IllegalAccessError {
         // Only attributes with constraint STATUS, MEASURE and initial value for all others can be updated from endpoint
         // context.
         if (getConstraint() == AttributeConstraint.STATUS || getConstraint() == AttributeConstraint.MEASURE) {
@@ -93,9 +95,9 @@ class MqttIntegerAttribute extends MqttAbstractAttribute<Integer> implements Jso
             // TODO: Maybe we should add another variable to indicate that the attribute was not initialized yet.
             // TODO: Check if online...
 
-            if (value instanceof Integer) {
+            if (value instanceof Float) {
                 if (getValidator() == null || getValidator().validate(this, value)) {
-                    this.value = (Integer)value;
+                    this.value = (Float)value;
                     this.setTimestamp(timestamp);
                 } else {
                     throw new IllegalArgumentException("Validator " + getValidator().toString() + " rejected value " +
@@ -121,7 +123,7 @@ class MqttIntegerAttribute extends MqttAbstractAttribute<Integer> implements Jso
         gen.writeStartObject();
 
         // Write datatype.
-        gen.writeObjectField("type", "Integer");
+        gen.writeObjectField("type", "Float");
 
         // Write constraint.
         gen.writeObjectField("constraint", getConstraint());

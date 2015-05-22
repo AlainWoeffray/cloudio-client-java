@@ -37,7 +37,7 @@ public interface Object extends ObjectContainer {
      * @param attributeType The actual type of the attribute.
      * @return              The Attribute instance.
      */
-    Attribute<?> attribute(String attributeName, Class attributeType);
+    <T> Attribute<T> attribute(String attributeName, Class<T> attributeType);
 
     /**
      * Adds a static attribute with the given name and the given value and returns the reference to itself. Basically

@@ -23,6 +23,8 @@ public abstract class MqttAbstractAttribute<T> implements Attribute<T>, MqttSync
         this.name = name;
     }
 
+    public abstract Class getType();
+
     public MqttObject getParent() {
         return parent;
     }

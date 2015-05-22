@@ -19,7 +19,7 @@ public class SetValidator<T extends Comparable> implements AttributeValidator<T>
     }
 
     @Override
-    public boolean validate(Attribute<T> attribute, T newValue) {
+    public boolean validate(Attribute attribute, T newValue) {
         try {
             for (T possibleValue : possibleValues) {
                 if (possibleValue.compareTo(newValue) == 0) return true;

@@ -13,15 +13,15 @@ public interface AttributeValidator<T> {
      *
      * @param attribute The attribute that is subject of the value change.
      * @param newValue  The new value to apply.
-     * @return          True if the new value is valid, false otherwise.
+     * @return True if the new value is valid, false otherwise.
      */
-    boolean validate(Attribute<T> attribute, T newValue);
+    boolean validate(Attribute attribute, T newValue);
 
     /**
      * Each AttributeValidator should return a string description (if possible a mathematical) what it actually
      * validates.
      *
-     * @return  String description of the validator.
+     * @return String description of the validator.
      */
     String toString();
 }

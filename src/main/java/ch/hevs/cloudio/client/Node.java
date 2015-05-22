@@ -2,8 +2,8 @@ package ch.hevs.cloudio.client;
 
 /**
  * Represents a logical node, this can be an actual device or a function of a device. Nodes enable to separate multiple
- * sensors that are connected using a gateway (which acts as the "Thing") or a node can represent a certain
- * functionality within a Thing allowing to group functions together.
+ * sensors that are connected using a gateway (which acts as the "Endpoint") or a node can represent a certain
+ * functionality within an Endpoint allowing to group functions together.
  *
  * A node can implement multiple interfaces. Interfaces are not like in Java definitions of methods to implement,
  * interfaces of a node rather describes what structure the node has to offer including objects and attributes.

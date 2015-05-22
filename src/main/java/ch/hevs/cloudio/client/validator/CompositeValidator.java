@@ -19,7 +19,7 @@ public class CompositeValidator<T> implements AttributeValidator<T> {
     }
 
     @Override
-    public boolean validate(Attribute<T> attribute, T newValue) {
+    public boolean validate(Attribute attribute, T newValue) {
         for (AttributeValidator validator: validators) {
             if (!validator.validate(attribute, newValue)) {
                 return false;
