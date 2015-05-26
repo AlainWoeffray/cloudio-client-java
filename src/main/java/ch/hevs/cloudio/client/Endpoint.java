@@ -18,6 +18,9 @@ public interface Endpoint extends UniqueIdentifiable {
      */
     Node node(String nodeName);
 
+    void addEndpointListener(EndpointListener listener);
+    void removeEndpointListener(EndpointListener listener);
+
     /**
      * Changes the publishing mode. The default mode is PublishMode.OFFLINE. This means that every Endpoint starts
      * not connected and as soon as the mode will be changed, the endpoint tries to connect to the cloud backend.

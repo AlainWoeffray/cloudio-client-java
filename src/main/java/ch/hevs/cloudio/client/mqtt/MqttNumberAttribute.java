@@ -10,19 +10,19 @@ import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 
 import java.io.IOException;
 
-class MqttFloatAttribute extends MqttAbstractAttribute<Float> implements JsonSerializable {
-    private Float value;
+class MqttNumberAttribute extends MqttAbstractAttribute<Double> implements JsonSerializable {
+    private Double value;
 
-    public MqttFloatAttribute(String name) {
+    public MqttNumberAttribute(String name) {
         super(name);
     }
 
     @Override
     public Class getType() {
-        return Boolean.class;
+        return Double.class;
     }
 
-    void setValueFromMqtt(Float value) {
+    void setValueFromMqtt(Double value) {
         // Only PARAMETER and SET_POINT can be changed from remote.
         if (getConstraint() == AttributeConstraint.PARAMETER || getConstraint() == AttributeConstraint.SET_POINT) {
             // Let the validator check the value before actually applying it.
@@ -52,18 +52,18 @@ class MqttFloatAttribute extends MqttAbstractAttribute<Float> implements JsonSer
 
 
     @Override
-    public Float getValue() {
+    public Double getValue() {
         return value;
     }
 
     @Override
-    public void setValue(Float value) throws IllegalArgumentException, IllegalAccessError {
+    public void setValue(Double value) throws IllegalArgumentException, IllegalAccessError {
         // Call method with current timestamp in milliseconds.
         setValue(value, (float)System.currentTimeMillis() / 1000f);
     }
 
     @Override
-    public void setValue(Float value, float timestamp) throws IllegalArgumentException, IllegalAccessError {
+    public void setValue(Double value, float timestamp) throws IllegalArgumentException, IllegalAccessError {
         // Only attributes with constraint STATUS, MEASURE and initial value for all others can be updated from endpoint
         // context.
         if (getConstraint() == AttributeConstraint.STATUS || getConstraint() == AttributeConstraint.MEASURE) {
@@ -89,23 +89,14 @@ class MqttFloatAttribute extends MqttAbstractAttribute<Float> implements JsonSer
     }
 
     @Override
-    public <T> Attribute initialize(T value, float timestamp) throws IllegalArgumentException, IllegalStateException {
+    public Attribute initialize(Double value, float timestamp) throws IllegalArgumentException, IllegalStateException {
         if (this.value == null) {
-
-            // TODO: Maybe we should add another variable to indicate that the attribute was not initialized yet.
-            // TODO: Check if online...
-
-            if (value instanceof Float) {
-                if (getValidator() == null || getValidator().validate(this, value)) {
-                    this.value = (Float)value;
-                    this.setTimestamp(timestamp);
-                } else {
-                    throw new IllegalArgumentException("Validator " + getValidator().toString() + " rejected value " +
-                            (value == null ? "null" : value.toString()));
-                }
+            if (getValidator() == null || getValidator().validate(this, value)) {
+                this.value = value;
+                this.setTimestamp(timestamp);
             } else {
-                throw new IllegalArgumentException("A variable of type " + this.value.getClass().getName() +
-                        " can not be initialized with " + value.getClass().getName() + "!");
+                throw new IllegalArgumentException("Validator " + getValidator().toString() + " rejected value " +
+                        (value == null ? "null" : value.toString()));
             }
         } else {
             throw new IllegalStateException("Attribute can not be initialized twice!");
@@ -123,7 +114,7 @@ class MqttFloatAttribute extends MqttAbstractAttribute<Float> implements JsonSer
         gen.writeStartObject();
 
         // Write datatype.
-        gen.writeObjectField("type", "Float");
+        gen.writeObjectField("type", "Number");
 
         // Write constraint.
         gen.writeObjectField("constraint", getConstraint());

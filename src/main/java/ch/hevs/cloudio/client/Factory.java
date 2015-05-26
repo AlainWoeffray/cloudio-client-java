@@ -1,5 +1,7 @@
 package ch.hevs.cloudio.client;
 
+import ch.hevs.cloudio.client.mqtt.MqttFactory;
+
 import java.util.Properties;
 
 /**
@@ -18,7 +20,6 @@ public class Factory {
      *                      actual factories implementing this interface, the definition is broad.
      */
     public Endpoint createEndpoint(String uuid, Properties properties) throws Exception {
-        return ((Factory)Factory.class.getClassLoader().loadClass("ch.hevs.cloudio.client.mqtt.Factory")
-                .newInstance()).createEndpoint(uuid, properties);
+        return (new MqttFactory()).createEndpoint(uuid, properties);
     }
 }

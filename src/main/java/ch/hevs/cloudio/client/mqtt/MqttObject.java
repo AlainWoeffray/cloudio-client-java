@@ -134,7 +134,7 @@ class MqttObject implements ch.hevs.cloudio.client.Object, MqttObjectContainer, 
                 } else if (attributeType == Boolean.class) {
                     attribute = new MqttBooleanAttribute(attributeName);
                 } else if (attributeType == Float.class || attributeType == Double.class) { // todo: Add double data type.
-                    attribute = new MqttFloatAttribute(attributeName);
+                    attribute = new MqttNumberAttribute(attributeName);
                 } else if (attributeType == String.class) {
                     attribute = new MqttStringAttribute(attributeName);
                 } else {

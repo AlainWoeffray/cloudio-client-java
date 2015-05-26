@@ -1,7 +1,12 @@
 package ch.hevs.cloudio.client.mqtt;
 
-import ch.hevs.cloudio.client.*;
-
+import ch.hevs.cloudio.client.Attribute;
+import ch.hevs.cloudio.client.Endpoint;
+import ch.hevs.cloudio.client.EndpointListener;
+import ch.hevs.cloudio.client.Node;
+import ch.hevs.cloudio.client.PublishMode;
+import ch.hevs.cloudio.client.UniqueIdentifiable;
+import ch.hevs.cloudio.client.Uuid;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializable;
@@ -13,17 +18,25 @@ import org.eclipse.paho.client.mqttv3.*;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.EmptyStackException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
+import java.util.Stack;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 class MqttEndpoint implements Endpoint, MqttContainer, MqttPublisher, MqttCallback, JsonSerializable {
     private String uuid;
     private MqttNamedItemSet<MqttNode> nodes = new MqttNamedItemSet<MqttNode>();
-    private MqttClient mqtt = null;
+    private MqttAsyncClient mqtt = null;
     private MqttConnectOptions options;
     private Properties properties;
     private PublishMode publishMode = PublishMode.OFFLINE;
+    private List<EndpointListener> endpointListeners = new LinkedList<EndpointListener>();
 
-    public MqttEndpoint(String uuid, MqttClient mqtt, MqttConnectOptions options, Properties properties) {
+    public MqttEndpoint(String uuid, MqttAsyncClient mqtt, MqttConnectOptions options, Properties properties) {
         this.uuid = uuid;
         this.mqtt = mqtt;
         this.options = options;
@@ -57,10 +70,34 @@ class MqttEndpoint implements Endpoint, MqttContainer, MqttPublisher, MqttCallba
     private void connect() throws IOException, MqttException {
         if (mqtt == null || mqtt.isConnected()) return;
 
-        mqtt.connect(options);
+        mqtt.connect(options, this, new IMqttActionListener() {
+            @Override
+            public void onSuccess(IMqttToken iMqttToken) {
+                for (EndpointListener listener: endpointListeners) {
+                    listener.endpointConnectionStatusChanged(MqttEndpoint.this, true);
+                }
+            }
+
+            @Override
+            public void onFailure(IMqttToken iMqttToken, Throwable throwable) {
+                final ScheduledExecutorService exec = Executors.newScheduledThreadPool(1);
+                exec.schedule(new Runnable(){
+                    @Override
+                    public void run() {
+                        try {
+                            connect();
+                        } catch (IOException exception) {
+                            exception.printStackTrace();
+                        } catch (MqttException exception) {
+                            exception.printStackTrace();
+                        }
+                    }
+                }, 1, TimeUnit.SECONDS);
+            }
+        });
         mqtt.setCallback(this);
         mqtt.publish("@online/" + uuid, getJson().getBytes("UTF-8"), 1, true);
-        mqtt.subscribe("@set/" + uuid + "/#");
+        mqtt.subscribe("@set/" + uuid + "/#", 1);
         setSynchronized();
     }
 
@@ -100,6 +137,16 @@ class MqttEndpoint implements Endpoint, MqttContainer, MqttPublisher, MqttCallba
             }
         }
         return node;
+    }
+
+    @Override
+    public void addEndpointListener(EndpointListener listener) {
+        endpointListeners.add(listener);
+    }
+
+    @Override
+    public void removeEndpointListener(EndpointListener listener) {
+        endpointListeners.remove(listener);
     }
 
     @Override
@@ -217,7 +264,16 @@ class MqttEndpoint implements Endpoint, MqttContainer, MqttPublisher, MqttCallba
 
     @Override
     public void connectionLost(Throwable throwable) {
-        // TODO:...
+        for (EndpointListener listener: endpointListeners) {
+            listener.endpointConnectionStatusChanged(this, false);
+        }
+        try {
+            connect();
+        } catch (IOException exception) {
+            exception.printStackTrace();
+        } catch (MqttException exception) {
+            exception.printStackTrace();
+        }
     }
 
     @Override
@@ -232,23 +288,28 @@ class MqttEndpoint implements Endpoint, MqttContainer, MqttPublisher, MqttCallba
             // The topic has to start with "@set/<UUID>".
             if ("@set".equals(location.pop())) {
                 if (uuid.equals(location.pop())) {
-                // Get the object identified by the topic.
-                final UniqueIdentifiable attribute = locate(location);
+                    // Get the object identified by the topic.
+                    final UniqueIdentifiable attribute = locate(location);
 
-                // Only operations on single attributes are allowed in the current version!
-                if (attribute instanceof MqttIntegerAttribute) {
-                    ObjectMapper mapper = new ObjectMapper();
-                    final Integer value = mapper.readValue(message.getPayload(), Integer.class);
-
-                    // Workaround for bug (probably in RabbitMQ) where we can not publish a new message before acking
-                    // the reception of this message. TODO: Check if the bug is in PAHO or RabbitMQ MQTT plugin.
-                    (new Timer()).schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            ((MqttIntegerAttribute)attribute).setValueFromMqtt(value);
-                        }
-                    }, 0);
-                }}
+                    // Only operations on single attributes are possible!
+                    if (attribute instanceof MqttBooleanAttribute) {
+                        ObjectMapper mapper = new ObjectMapper();
+                        final Boolean value = mapper.readValue(message.getPayload(), Boolean.class);
+                        ((MqttBooleanAttribute) attribute).setValueFromMqtt(value);
+                    } else if (attribute instanceof MqttIntegerAttribute) {
+                        ObjectMapper mapper = new ObjectMapper();
+                        final Integer value = mapper.readValue(message.getPayload(), Integer.class);
+                        ((MqttIntegerAttribute) attribute).setValueFromMqtt(value);
+                    } else if (attribute instanceof MqttNumberAttribute) {
+                        ObjectMapper mapper = new ObjectMapper();
+                        final Double value = mapper.readValue(message.getPayload(), Double.class);
+                        ((MqttNumberAttribute) attribute).setValueFromMqtt(value);
+                    } else if (attribute instanceof MqttStringAttribute) {
+                        ObjectMapper mapper = new ObjectMapper();
+                        final String value = mapper.readValue(message.getPayload(), String.class);
+                        ((MqttStringAttribute) attribute).setValueFromMqtt(value);
+                    }
+                }
             }
         } catch (Exception e) {
             // We silently ignore the message if the topic is invalid.

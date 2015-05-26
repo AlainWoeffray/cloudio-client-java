@@ -89,23 +89,14 @@ class MqttStringAttribute extends MqttAbstractAttribute<String> implements JsonS
     }
 
     @Override
-    public <T> Attribute initialize(T value, float timestamp) throws IllegalArgumentException, IllegalStateException {
+    public Attribute initialize(String value, float timestamp) throws IllegalArgumentException, IllegalStateException {
         if (this.value == null) {
-
-            // TODO: Maybe we should add another variable to indicate that the attribute was not initialized yet.
-            // TODO: Check if online...
-
-            if (value instanceof String) {
-                if (getValidator() == null || getValidator().validate(this, value)) {
-                    this.value = (String)value;
-                    this.setTimestamp(timestamp);
-                } else {
-                    throw new IllegalArgumentException("Validator " + getValidator().toString() + " rejected value " +
-                            (value == null ? "null" : value.toString()));
-                }
+            if (getValidator() == null || getValidator().validate(this, value)) {
+                this.value = value;
+                this.setTimestamp(timestamp);
             } else {
-                throw new IllegalArgumentException("A variable of type " + this.value.getClass().getName() +
-                        " can not be initialized with " + value.getClass().getName() + "!");
+                throw new IllegalArgumentException("Validator " + getValidator().toString() + " rejected value " +
+                        (value == null ? "null" : value.toString()));
             }
         } else {
             throw new IllegalStateException("Attribute can not be initialized twice!");

@@ -83,7 +83,7 @@ public interface Attribute<T> extends UniqueIdentifiable {
      * @throws IllegalArgumentException     Thrown if the given value is not applicable or invalid.
      * @throws IllegalStateException        Thrown if the endpoint is online or the attribute already has a value.
      */
-    <T> Attribute<T> initialize(T initialValue, float timestamp)
+    Attribute initialize(T initialValue, float timestamp)
             throws IllegalArgumentException, IllegalStateException;
 
     /**

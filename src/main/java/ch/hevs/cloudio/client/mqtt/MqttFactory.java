@@ -1,7 +1,7 @@
 package ch.hevs.cloudio.client.mqtt;
 
 import ch.hevs.cloudio.client.Endpoint;
-import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttClientPersistence;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
@@ -24,7 +24,7 @@ import java.util.Properties;
 
 // TODO: Move from Jackson databind to Jackson Stream implementation.
 
-public class Factory extends ch.hevs.cloudio.client.Factory {
+public class MqttFactory extends ch.hevs.cloudio.client.Factory {
 
     // MQTT options.
     private static final String MQTT_HOST_URI_PROPERTY          = "ch.hevs.cloudio.client.hostUri";
@@ -33,7 +33,7 @@ public class Factory extends ch.hevs.cloudio.client.Factory {
     private static final String MQTT_PERSISTENCE_MEMORY         = "memory";
     private static final String MQTT_PERSISTENCE_FILE           = "file";
     private static final String MQTT_PERSISTENCE_PROPERTY       = "ch.hevs.cloudio.client.persistence";
-    private static final String MQTT_PERSISTENCE_DEFAULT        = MQTT_PERSISTENCE_MEMORY;
+    private static final String MQTT_PERSISTENCE_DEFAULT        = MQTT_PERSISTENCE_FILE;
 
     // SSL options.
     private static final String ENDPOINT_IDENTITY_FILE_TYPE = "PKCS12";
@@ -66,7 +66,7 @@ public class Factory extends ch.hevs.cloudio.client.Factory {
      *     (60 seconds) is used.<br><br></li>
      *     <li><b>ch.hevs.cloudio.client.persistence</b><br>
      *     The persistence to use for the MQTT client. Possible values are <b>"memory"</b> where the data is saved in
-     *     memory or <b>"file"</b> where the messages are queued on the filesystem. Default is <b>"memory"</b>
+     *     memory or <b>"file"</b> where the messages are queued on the filesystem. Default is <b>"file"</b>.
      *     <br><br></li>
      *     <li><b>ch.hevs.cloudio.client.ssl.clientCert</b><br>
      *     Location (URI) of the ssl client certificate and key bundled into a PKCS12 file (*.p12). Supported URI
@@ -135,7 +135,7 @@ public class Factory extends ch.hevs.cloudio.client.Factory {
         }
 
         // Create MQTT client.
-        MqttClient mqtt = new MqttClient(properties.getProperty(MQTT_HOST_URI_PROPERTY), uuid, persistence);
+        MqttAsyncClient mqtt = new MqttAsyncClient(properties.getProperty(MQTT_HOST_URI_PROPERTY), uuid, persistence);
         return new MqttEndpoint(uuid, mqtt, options, properties);
     }
 
